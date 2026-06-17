@@ -10,6 +10,7 @@ import { DisclosureNotice } from "@/components/DisclosureNotice";
 import { LockedSection } from "@/components/LockedSection";
 import { ProductGrid } from "@/components/ProductGrid";
 import { ReportSection } from "@/components/ReportSection";
+import { Room3DViewer, type Room3DViewerStatus } from "@/components/Room3DViewer";
 import { ScoreCard } from "@/components/ScoreCard";
 import { SocialShareCard } from "@/components/SocialShareCard";
 import { getMatchedRoomExample } from "@/lib/roomExamples";
@@ -25,12 +26,48 @@ const includedCards = [
   { badge: "BUY", title: "Shopping list", copy: "Budget-aware product categories and priorities." }
 ];
 
+type Room3DProvider = "demo" | "meshy";
+
+interface Room3DState {
+  provider: Room3DProvider;
+  status: Room3DViewerStatus;
+  taskId?: string;
+  modelUrl?: string;
+  thumbnailUrl?: string;
+  progress?: number;
+  message?: string;
+  error?: string;
+}
+
+interface Room3DResponse {
+  provider?: Room3DProvider;
+  status?: Room3DViewerStatus;
+  taskId?: string;
+  modelUrl?: string;
+  thumbnailUrl?: string;
+  progress?: number;
+  message?: string;
+  error?: string;
+}
+
+function wait(ms: number) {
+  return new Promise((resolve) => {
+    window.setTimeout(resolve, ms);
+  });
+}
+
 export default function ResultsPage() {
   const router = useRouter();
   const [report, setReport] = useState<GeneratedRoomReport | null>(null);
   const [isLocked, setIsLocked] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedPlan, setSelectedPlan] = useState("");
+  const [room3D, setRoom3D] = useState<Room3DState>({
+    provider: "demo",
+    status: "demo",
+    progress: 0
+  });
+  const [is3DGenerating, setIs3DGenerating] = useState(false);
 
   useEffect(() => {
     const raw = localStorage.getItem(storageKey);
@@ -49,6 +86,98 @@ export default function ResultsPage() {
 
   function goToPricing() {
     router.push("/pricing");
+  }
+
+  async function generate3DView() {
+    if (!report) {
+      return;
+    }
+
+    const roomImage = report.input.uploadedImages[0]?.url;
+
+    setIs3DGenerating(true);
+    setRoom3D({
+      provider: "meshy",
+      status: "queued",
+      progress: 0
+    });
+
+    try {
+      const createResponse = await fetch("/api/room-3d", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          imageDataUrl: roomImage,
+          roomType: report.input.customRoomType || report.input.roomType,
+          theme: report.input.selectedTheme
+        })
+      });
+      const createData = (await createResponse.json()) as Room3DResponse;
+
+      if (!createResponse.ok) {
+        throw new Error(createData.error || "The 3D model could not be started.");
+      }
+
+      if (!createData.taskId) {
+        setRoom3D({
+          provider: "demo",
+          status: createData.status || "demo",
+          progress: 0,
+          message: createData.message,
+          error: createData.message
+        });
+        return;
+      }
+
+      setRoom3D({
+        provider: "meshy",
+        status: "processing",
+        taskId: createData.taskId,
+        progress: 0
+      });
+
+      for (let attempt = 0; attempt < 45; attempt += 1) {
+        await wait(attempt === 0 ? 1200 : 3500);
+
+        const taskResponse = await fetch(`/api/room-3d?taskId=${encodeURIComponent(createData.taskId)}`);
+        const taskData = (await taskResponse.json()) as Room3DResponse;
+
+        if (!taskResponse.ok) {
+          throw new Error(taskData.error || "The 3D model task could not be read.");
+        }
+
+        setRoom3D({
+          provider: taskData.provider || "meshy",
+          status: taskData.status || "processing",
+          taskId: taskData.taskId || createData.taskId,
+          modelUrl: taskData.modelUrl,
+          thumbnailUrl: taskData.thumbnailUrl,
+          progress: taskData.progress || 0,
+          error: taskData.error
+        });
+
+        if (taskData.status === "succeeded" && taskData.modelUrl) {
+          return;
+        }
+
+        if (taskData.status === "failed") {
+          throw new Error(taskData.error || "The 3D model task failed.");
+        }
+      }
+
+      throw new Error("The 3D model is still processing. Try again in a minute.");
+    } catch (error) {
+      setRoom3D({
+        provider: "demo",
+        status: "failed",
+        progress: 0,
+        error: error instanceof Error ? error.message : "The 3D model could not be generated."
+      });
+    } finally {
+      setIs3DGenerating(false);
+    }
   }
 
   if (isLoading) {
@@ -91,6 +220,7 @@ export default function ResultsPage() {
   const afterImage = matchedExample.afterImage;
   const displayRoomType = report.input.customRoomType || report.input.roomType;
   const planLabel = selectedPlan ? selectedPlan.replaceAll("-", " ") : "Free teaser";
+  const uploadedRoomImage = report.input.uploadedImages[0]?.url || beforeImage;
   const teaserSteps = [
     report.quickTip,
     report.priorityFixes[0],
@@ -167,6 +297,67 @@ export default function ResultsPage() {
               <p className="mt-2 text-sm leading-6 text-muted">{item.copy}</p>
             </div>
           ))}
+        </section>
+
+        <section className="overflow-hidden rounded-soft border border-white/62 bg-white/38 shadow-card backdrop-blur-2xl">
+          <div className="grid lg:grid-cols-[minmax(0,1fr)_340px]">
+            <Room3DViewer
+              modelUrl={room3D.modelUrl}
+              progress={room3D.progress}
+              status={room3D.status}
+              sourceImage={uploadedRoomImage}
+              error={room3D.error || room3D.message}
+            />
+
+            <div className="flex flex-col justify-between border-t border-white/62 p-5 lg:border-l lg:border-t-0 md:p-6">
+              <div>
+                <p className="text-xs font-semibold uppercase text-sage">3D room view</p>
+                <h2 className="font-serif-display mt-2 text-3xl font-semibold tracking-normal text-plum">
+                  Navigable makeover model
+                </h2>
+                <p className="mt-3 text-sm leading-6 text-muted">
+                  Meshy image-to-3D generation is connected for GLB output. The demo model stays
+                  available when the API key has not been added yet.
+                </p>
+
+                <div className="mt-5 divide-y divide-white/60 border-y border-white/60 text-sm">
+                  {[
+                    ["Provider", room3D.provider === "meshy" ? "Meshy Image to 3D" : "Local demo"],
+                    ["Format", room3D.modelUrl ? "Generated GLB" : "Preview scene"],
+                    ["Status", room3D.status.replaceAll("-", " ")]
+                  ].map(([label, value]) => (
+                    <div key={label} className="flex items-center justify-between gap-4 py-3">
+                      <span className="font-semibold text-plum">{label}</span>
+                      <span className="text-right capitalize text-muted">{value}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mt-6 grid gap-3">
+                <Button
+                  className="orange-button w-full"
+                  onClick={generate3DView}
+                  disabled={is3DGenerating}
+                >
+                  {is3DGenerating ? "Generating 3D model" : "Generate 3D model"}
+                </Button>
+                <Button
+                  variant="secondary"
+                  className="w-full"
+                  onClick={() =>
+                    setRoom3D({
+                      provider: "demo",
+                      status: "demo",
+                      progress: 0
+                    })
+                  }
+                >
+                  Reset demo
+                </Button>
+              </div>
+            </div>
+          </div>
         </section>
 
         <section className="grid gap-6 lg:grid-cols-[340px_1fr]">
