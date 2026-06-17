@@ -1,15 +1,17 @@
 "use client";
 
 import { useState } from "react";
+import type { LucideIcon } from "lucide-react";
+import { Bath, BedDouble, Building2, BriefcaseBusiness } from "lucide-react";
 import { BeforeAfterSlider } from "@/components/BeforeAfterSlider";
 import { Button } from "@/components/Button";
 import { roomExamples } from "@/lib/roomExamples";
 
-const exampleBadges: Record<string, string> = {
-  "small-apartment": "APT",
-  "bathroom-refresh": "BTH",
-  "bedroom-dark": "BED",
-  "work-zone": "WRK"
+const exampleIcons: Record<string, LucideIcon> = {
+  "small-apartment": Building2,
+  "bathroom-refresh": Bath,
+  "bedroom-dark": BedDouble,
+  "work-zone": BriefcaseBusiness
 };
 
 export function HomeExampleShowcase() {
@@ -32,27 +34,26 @@ export function HomeExampleShowcase() {
           </h2>
         </div>
         <div className="flex flex-wrap gap-2">
-          {roomExamples.map((example) => (
-            <button
-              key={example.id}
-              type="button"
-              aria-pressed={active.id === example.id}
-              onClick={() => setActiveId(example.id)}
-              className={`focus-ring glass-pill border px-4 py-2 text-sm font-semibold transition duration-200 hover:-translate-y-1 hover:shadow-card ${
-                active.id === example.id
-                  ? "border-coral bg-white/82 text-plum"
-                  : "border-white/55 text-muted hover:border-coral hover:text-plum"
-              }`}
-            >
-              <span
-                className="mr-2 rounded bg-white/65 px-1.5 py-0.5 text-[10px] tracking-normal text-plum"
-                aria-hidden="true"
+          {roomExamples.map((example) => {
+            const Icon = exampleIcons[example.id] || Building2;
+
+            return (
+              <button
+                key={example.id}
+                type="button"
+                aria-pressed={active.id === example.id}
+                onClick={() => setActiveId(example.id)}
+                className={`focus-ring glass-pill inline-flex items-center gap-2 border px-4 py-2 text-sm font-semibold transition duration-200 hover:-translate-y-1 hover:shadow-card ${
+                  active.id === example.id
+                    ? "border-coral bg-white/82 text-plum"
+                    : "border-white/55 text-muted hover:border-coral hover:text-plum"
+                }`}
               >
-                {exampleBadges[example.id]}
-              </span>
-              {example.eyebrow}
-            </button>
-          ))}
+                <Icon aria-hidden="true" size={15} strokeWidth={2.2} />
+                {example.eyebrow}
+              </button>
+            );
+          })}
         </div>
       </div>
 

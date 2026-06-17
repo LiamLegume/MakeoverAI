@@ -14,11 +14,17 @@ export async function generateRoomPreview(
   const customDirection = input.customPrompt
     ? ` Custom style note: ${input.customPrompt.trim()}`
     : "";
+  const paletteDirection = input.customPalette?.length
+    ? ` Custom colour palette: ${input.customPalette
+        .map((colour) => `${colour.name} ${colour.hex} for ${colour.usage}`)
+        .join("; ")}.`
+    : "";
 
   const generationPrompt = [
     `Create a realistic ${displayRoomType} makeover in a ${input.selectedTheme} style.`,
     `Design direction: ${themeDescriptions[input.selectedTheme]}.`,
     `Budget: ${input.budget}. Main goals: ${input.goals.join(", ")}.`,
+    paletteDirection,
     productNames ? `Suggested product types to incorporate: ${productNames}.` : "",
     "Keep the room believable, bright, practical, and not over-styled.",
     "Do not imply professional certification or guaranteed results.",

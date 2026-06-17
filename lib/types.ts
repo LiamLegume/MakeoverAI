@@ -90,6 +90,7 @@ export interface RoomReportInput {
   roomType: RoomType;
   customRoomType?: string;
   selectedTheme: DecorTheme;
+  customPalette?: ColourSwatch[];
   budget: BudgetTier;
   goals: ImprovementGoal[];
   customPrompt?: string;
@@ -98,6 +99,7 @@ export interface RoomReportInput {
 export interface GenerateRoomPreviewInput {
   uploadedRoomImage?: string;
   selectedTheme: DecorTheme;
+  customPalette?: ColourSwatch[];
   roomType: RoomType;
   customRoomType?: string;
   budget: BudgetTier;

@@ -20,6 +20,7 @@ import { UploadDropzone } from "@/components/UploadDropzone";
 import { generateRoomReport } from "@/lib/generateRoomReport";
 import type {
   BudgetTier,
+  ColourSwatch,
   DecorTheme,
   ImprovementGoal,
   RoomType,
@@ -40,6 +41,13 @@ const loadingStages = [
   { label: "Finalising makeover ideas", progress: 96 }
 ];
 
+const defaultCustomPalette: ColourSwatch[] = [
+  { name: "Warm white", hex: "#F7F1E8", usage: "walls and large surfaces" },
+  { name: "Sage green", hex: "#71846B", usage: "towels, cushions, or small accents" },
+  { name: "Soft clay", hex: "#C77B5A", usage: "art, ceramics, or decor" },
+  { name: "Deep plum", hex: "#2F1236", usage: "one grounding detail" }
+];
+
 type StepId = "photos" | "room" | "theme" | "budget" | "goals" | "dream";
 
 interface StepDefinition {
@@ -57,6 +65,7 @@ export default function CreatePage() {
   const [roomType, setRoomType] = useState<RoomType | "">("");
   const [customRoomType, setCustomRoomType] = useState("");
   const [selectedTheme, setSelectedTheme] = useState<DecorTheme | "">("");
+  const [customPalette, setCustomPalette] = useState<ColourSwatch[]>(defaultCustomPalette);
   const [budget, setBudget] = useState<BudgetTier | "">("");
   const [goals, setGoals] = useState<ImprovementGoal[]>([]);
   const [customPrompt, setCustomPrompt] = useState("");
@@ -95,7 +104,14 @@ export default function CreatePage() {
       eyebrow: "Step 3",
       title: "What should it feel like after the makeover?",
       help: "Pick the direction closest to what you want. You can add your own details later.",
-      content: <ThemeSelector value={selectedTheme} onChange={setSelectedTheme} />,
+      content: (
+        <ThemeSelector
+          value={selectedTheme}
+          onChange={setSelectedTheme}
+          customPalette={customPalette}
+          onCustomPaletteChange={setCustomPalette}
+        />
+      ),
       isComplete: Boolean(selectedTheme)
     },
     {
@@ -198,6 +214,7 @@ export default function CreatePage() {
         roomType,
         customRoomType: roomType === "other room" ? customRoomType.trim() : undefined,
         selectedTheme,
+        customPalette: selectedTheme === "custom theme" ? customPalette : undefined,
         budget,
         goals,
         customPrompt
@@ -225,8 +242,8 @@ export default function CreatePage() {
         </div>
         <div className="page-shell relative z-10">
           <div className="grid min-h-[calc(100vh-150px)] gap-5 lg:grid-cols-[minmax(0,1.05fr)_420px] lg:items-stretch">
-            <div className="overflow-hidden rounded-soft border border-white/60 bg-plum shadow-soft">
-              <div className="relative min-h-[560px] overflow-hidden">
+            <div className="relative min-h-[560px] overflow-hidden rounded-soft border border-white/60 bg-plum shadow-soft">
+              <div className="absolute inset-0">
                 <img
                   src={uploadedImages[0]?.url || "/images/ai-before-bedroom-messy.png"}
                   alt="Room being analysed"
@@ -254,7 +271,7 @@ export default function CreatePage() {
                   <h1 className="font-serif-display mt-5 text-5xl leading-none tracking-normal text-white md:text-7xl">
                     Turning your room into a plan.
                   </h1>
-                  <p className="mt-4 max-w-lg text-sm leading-6 text-white/78">
+                  <p className="mt-4 max-w-lg text-sm leading-6 text-white/80">
                     We are ranking the fixes by impact, budget, and how realistic they are
                     for the room you uploaded.
                   </p>
@@ -268,9 +285,9 @@ export default function CreatePage() {
                   ].map(([label, value]) => (
                     <div
                       key={label}
-                      className="rounded-soft border border-white/26 bg-white/18 p-4 text-white shadow-card backdrop-blur-2xl"
+                      className="rounded-soft border border-white/25 bg-white/20 p-4 text-white shadow-card backdrop-blur-2xl"
                     >
-                      <p className="text-[11px] font-semibold uppercase text-white/62">{label}</p>
+                      <p className="text-[11px] font-semibold uppercase text-white/70">{label}</p>
                       <p className="mt-1 text-sm font-semibold capitalize">{value}</p>
                     </div>
                   ))}

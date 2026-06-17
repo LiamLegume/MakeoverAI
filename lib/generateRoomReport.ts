@@ -75,7 +75,11 @@ const paletteByTheme: Record<string, ColourSwatch[]> = {
   ]
 };
 
-function choosePalette(theme: string) {
+function choosePalette(theme: string, customPalette?: ColourSwatch[]) {
+  if (customPalette?.length) {
+    return customPalette;
+  }
+
   if (theme.includes("dark")) return paletteByTheme.dark;
   if (theme.includes("gaming")) return paletteByTheme.gaming;
   return paletteByTheme.light;
@@ -105,6 +109,7 @@ export async function generateRoomReport(
   const preview = await generateRoomPreview({
     uploadedRoomImage: input.uploadedImages[0]?.url,
     selectedTheme: input.selectedTheme,
+    customPalette: input.customPalette,
     roomType: input.roomType,
     customRoomType: input.customRoomType,
     budget: input.budget,
@@ -129,7 +134,11 @@ export async function generateRoomReport(
     headline:
       "Your room has good bones. It needs clearer layout, better lighting, cleaner storage, and smarter furniture choices.",
     mainProblem,
-    styleSummary: `A ${input.selectedTheme} direction works well for this ${displayRoomType}: ${themeDescriptions[input.selectedTheme]}. Keep the changes practical and make each purchase solve a visible problem.`,
+    styleSummary: `A ${input.selectedTheme} direction works well for this ${displayRoomType}: ${themeDescriptions[input.selectedTheme]}. ${
+      input.customPalette?.length
+        ? "Use the custom colour palette as the guardrail so new pieces feel intentional."
+        : "Keep the changes practical and make each purchase solve a visible problem."
+    }`,
     quickTip:
       primaryGoal === "better lighting"
         ? "Add one warm lamp at eye level before buying more decor."
@@ -147,7 +156,7 @@ export async function generateRoomReport(
       "Use one rug, shelf, lamp, or side table to visually anchor the main zone.",
       "Check measurements before buying, especially rugs, shelves, curtains, and storage boxes."
     ],
-    colourPalette: choosePalette(input.selectedTheme),
+    colourPalette: choosePalette(input.selectedTheme, input.customPalette),
     lightingPlan: [
       "Use warm white bulbs around 2700K to 3000K for a calmer room.",
       "Add one task light where you work, read, or get ready.",
