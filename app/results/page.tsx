@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import type { LucideIcon } from "lucide-react";
+import { Armchair, CheckCircle2, Cuboid, LampDesk, MoveRight, ShoppingBag } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { BeforeAfterPreview } from "@/components/BeforeAfterPreview";
 import { Button } from "@/components/Button";
@@ -20,10 +22,17 @@ const storageKey = "roomrevamp.latestReport";
 const planStorageKey = "roomrevamp.selectedPlan";
 
 const includedCards = [
-  { badge: "LAY", title: "Layout moves", copy: "Furniture placement and walking-path fixes." },
-  { badge: "LGT", title: "Lighting plan", copy: "Warm bulbs, task lights, and mood layers." },
-  { badge: "FUR", title: "Furniture tips", copy: "What to keep, move, replace, or buy first." },
-  { badge: "BUY", title: "Shopping list", copy: "Budget-aware product categories and priorities." }
+  { icon: MoveRight, title: "Layout moves", copy: "Furniture placement and walking-path fixes." },
+  { icon: LampDesk, title: "Lighting plan", copy: "Warm bulbs, task lights, and mood layers." },
+  { icon: Armchair, title: "Furniture tips", copy: "What to keep, move, replace, or buy first." },
+  { icon: ShoppingBag, title: "Shopping list", copy: "Budget-aware product categories and priorities." }
+] satisfies { icon: LucideIcon; title: string; copy: string }[];
+
+const resultModes = [
+  "Action plan",
+  "Visual preview",
+  "3D room view",
+  "Shopping priorities"
 ];
 
 type Room3DProvider = "demo" | "meshy";
@@ -226,6 +235,23 @@ export default function ResultsPage() {
     report.priorityFixes[0],
     `Keep purchases inside the ${report.input.budget} plan until the layout is settled.`
   ];
+  const actionPlan = [
+    {
+      label: "First 10 minutes",
+      title: "Clear the visible path",
+      copy: report.quickTip
+    },
+    {
+      label: "This weekend",
+      title: "Move before buying",
+      copy: report.layoutSuggestions[0] || "Test the layout changes before ordering anything."
+    },
+    {
+      label: "Buy next",
+      title: "Spend where it shows",
+      copy: report.productRecommendations[0]?.reason || report.priorityFixes[0]
+    }
+  ];
 
   return (
     <div className="aurora-stage dotted-parallax py-8 md:py-12">
@@ -245,9 +271,18 @@ export default function ResultsPage() {
               Your {displayRoomType} plan is ready.
             </h1>
             <p className="mt-5 max-w-2xl text-base leading-7 text-muted">
-              The free view shows the diagnosis and first moves. Unlock the full report for
-              layout, lighting, palette, shopping, and the share card.
+              Start with the diagnosis, then use the action cards, 3D view, layout notes,
+              lighting plan, palette, and shopping priorities to make decisions in order.
             </p>
+
+            <div className="mt-6 flex flex-wrap gap-2">
+              {resultModes.map((mode) => (
+                <span key={mode} className="glass-pill inline-flex items-center gap-2 px-3 py-2 text-xs font-semibold text-plum">
+                  <CheckCircle2 aria-hidden="true" size={14} className="text-coral" />
+                  {mode}
+                </span>
+              ))}
+            </div>
 
             <div className="mt-8 grid gap-3 sm:grid-cols-3">
               {[
@@ -290,11 +325,28 @@ export default function ResultsPage() {
         <section className="grid gap-4 md:grid-cols-4">
           {includedCards.map((item) => (
             <div key={item.title} className="glass-panel rounded-soft p-5">
-              <span className="inline-flex h-8 min-w-10 items-center justify-center rounded bg-oat px-2 text-[11px] font-semibold tracking-normal text-plum">
-                {item.badge}
+              <span className="inline-flex h-10 w-10 items-center justify-center rounded bg-oat text-plum">
+                <item.icon aria-hidden="true" size={20} strokeWidth={2} />
               </span>
               <h2 className="mt-4 text-base font-semibold text-plum">{item.title}</h2>
               <p className="mt-2 text-sm leading-6 text-muted">{item.copy}</p>
+            </div>
+          ))}
+        </section>
+
+        <section className="grid gap-4 md:grid-cols-3">
+          {actionPlan.map((item, index) => (
+            <div key={item.label} className="glass-panel rounded-soft p-5">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-xs font-semibold uppercase text-sage">{item.label}</p>
+                  <h2 className="mt-2 text-xl font-semibold text-plum">{item.title}</h2>
+                </div>
+                <span className="grid h-9 w-9 shrink-0 place-items-center rounded bg-[#fff0e9] text-sm font-semibold text-coral">
+                  0{index + 1}
+                </span>
+              </div>
+              <p className="mt-4 text-sm leading-6 text-muted">{item.copy}</p>
             </div>
           ))}
         </section>
@@ -311,7 +363,10 @@ export default function ResultsPage() {
 
             <div className="flex flex-col justify-between border-t border-white/62 p-5 lg:border-l lg:border-t-0 md:p-6">
               <div>
-                <p className="text-xs font-semibold uppercase text-sage">3D room view</p>
+                <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase text-sage">
+                  <Cuboid aria-hidden="true" size={14} />
+                  3D room view
+                </p>
                 <h2 className="font-serif-display mt-2 text-3xl font-semibold tracking-normal text-plum">
                   Navigable makeover model
                 </h2>

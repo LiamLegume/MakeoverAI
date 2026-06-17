@@ -4,6 +4,7 @@ import { Card } from "@/components/Card";
 import { DisclosureNotice } from "@/components/DisclosureNotice";
 import { HomeExampleShowcase } from "@/components/HomeExampleShowcase";
 import { leaderboardRooms } from "@/lib/mockData";
+import { ArrowRight, Camera, ClipboardList, Cuboid, ReceiptText } from "lucide-react";
 
 const issues = [
   "The room needs layered light instead of relying on one overhead source.",
@@ -19,9 +20,10 @@ const fixes = [
 ];
 
 const deliverables = [
-  "Practical advice",
-  "Budget-conscious",
-  "Beautiful results"
+  { icon: Camera, title: "Photo-led", copy: "Built from the room you actually upload." },
+  { icon: ClipboardList, title: "Practical plan", copy: "Prioritized fixes, not vague inspiration." },
+  { icon: Cuboid, title: "3D preview", copy: "A navigable room view in the result screen." },
+  { icon: ReceiptText, title: "Budget filter", copy: "Advice shaped by what you want to spend." }
 ];
 
 const testimonials = [
@@ -58,22 +60,73 @@ export default function HomePage() {
   return (
     <>
       <section className="aurora-stage min-h-[calc(100vh-74px)] pb-12 pt-8">
+        <div className="aurora-motion" aria-hidden="true">
+          <span />
+          <span />
+          <span />
+        </div>
         <div className="page-shell relative z-10">
-          <div className="grid gap-8 lg:grid-cols-[0.9fr_0.7fr] lg:items-end">
-            <div>
-              <p className="inline-flex items-center gap-2 rounded-full bg-white/70 px-4 py-2 text-xs font-semibold uppercase text-plum shadow-card">
-                Room analysis
-                <span className="text-coral">*</span>
+          <div className="grid gap-6 lg:grid-cols-[0.85fr_1.15fr] lg:items-stretch">
+            <div className="glass-panel rounded-soft p-6 md:p-8">
+              <p className="glass-pill inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold uppercase text-plum">
+                <Camera aria-hidden="true" size={14} />
+                Room analysis studio
               </p>
-              <h1 className="font-serif-display mt-5 max-w-3xl text-6xl leading-[0.98] tracking-normal text-plum md:text-7xl lg:text-8xl">
-                Upload a room. Get a{" "}
-                <span className="italic text-coral">practical</span> makeover plan.
+              <h1 className="font-serif-display mt-5 max-w-3xl text-5xl leading-none tracking-normal text-plum md:text-7xl">
+                Upload a room, then get a plan you can actually follow.
               </h1>
-              <p className="mt-5 text-lg text-plum/70">
-                AI-powered advice for layout, furniture, lighting, storage, style, and budget-friendly fixes.
+              <p className="mt-5 max-w-2xl text-base leading-7 text-muted">
+                RoomRevamp turns photos, room type, style direction, goals, and budget into a
+                guided report with layout notes, lighting fixes, product priorities, and a 3D view.
               </p>
+
+              <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+                <Button href="/create" className="orange-button" size="lg">
+                  Start your room
+                  <ArrowRight aria-hidden="true" size={18} />
+                </Button>
+                <Button href="/examples" variant="secondary" size="lg">
+                  View examples
+                </Button>
+              </div>
+
+              <div className="mt-8 grid gap-3 sm:grid-cols-2">
+                {deliverables.map((item) => {
+                  const Icon = item.icon;
+
+                  return (
+                    <div key={item.title} className="rounded-soft border border-white/62 bg-white/56 p-4 backdrop-blur-xl">
+                      <Icon aria-hidden="true" className="text-coral" size={20} />
+                      <p className="mt-3 text-sm font-semibold text-plum">{item.title}</p>
+                      <p className="mt-1 text-xs leading-5 text-muted">{item.copy}</p>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
-            <div aria-hidden="true" className="aurora-art hidden lg:block" />
+
+            <div className="grid gap-4">
+              <BeforeAfterSlider
+                beforeImage="/images/ai-before-apartment.webp"
+                afterImage="/images/ai-after-apartment.webp"
+                beforeLabel="Uploaded room"
+                afterLabel="Makeover direction"
+                imageClassName="h-[360px] md:h-[570px]"
+                className="h-full"
+              />
+              <div className="grid gap-3 sm:grid-cols-3">
+                {[
+                  ["Score", "74 -> 91"],
+                  ["Budget", "under $500"],
+                  ["First move", "Clear layout path"]
+                ].map(([label, value]) => (
+                  <div key={label} className="glass-panel rounded-soft p-4">
+                    <p className="text-xs font-semibold uppercase text-sage">{label}</p>
+                    <p className="mt-1 text-sm font-semibold text-plum">{value}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
 
           <HomeExampleShowcase />
@@ -135,13 +188,8 @@ export default function HomePage() {
             </Card>
           </div>
 
-          <div className="glass-panel mt-6 flex flex-col items-center justify-center gap-4 rounded-soft px-5 py-4 text-sm text-plum sm:flex-row">
-            {deliverables.map((item) => (
-              <span key={item} className="flex items-center gap-3">
-                <span className="h-2 w-2 rounded-full bg-coral" />
-                {item}
-              </span>
-            ))}
+          <div className="glass-panel mt-6 rounded-soft px-5 py-4 text-center text-sm font-semibold text-plum">
+            Built for real rooms, real budgets, and decisions you can make this weekend.
           </div>
         </div>
       </section>

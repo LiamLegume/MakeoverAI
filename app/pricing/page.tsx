@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import type { LucideIcon } from "lucide-react";
+import { BadgeCheck, ClipboardList, Eye, LockKeyhole, Sparkles } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { BeforeAfterSlider } from "@/components/BeforeAfterSlider";
 import { Button } from "@/components/Button";
@@ -49,6 +51,20 @@ const unlockSteps = [
   "Priority fixes",
   "Palette and lighting",
   "Product shortlist"
+];
+
+const planIcons: Record<string, LucideIcon> = {
+  "mini-reveal": Eye,
+  "full-room-plan": ClipboardList,
+  "room-pack": Sparkles
+};
+
+const unlockDeliverables = [
+  "Before/after direction",
+  "Layout and furniture moves",
+  "Lighting and palette plan",
+  "Shopping priorities",
+  "3D room view"
 ];
 
 const showcaseImages = [
@@ -130,6 +146,14 @@ export default function PricingPage() {
                 ? `Your ${roomType} teaser is ready. Unlock the ${theme} makeover preview, the full report, and the practical shopping plan.`
                 : "Pick the plan you want, then upload your room photos and answer the guided questions to generate your locked results."}
             </p>
+            <div className="mt-6 flex flex-wrap gap-2">
+              {unlockDeliverables.map((item) => (
+                <span key={item} className="glass-pill inline-flex items-center gap-2 px-3 py-2 text-xs font-semibold text-plum">
+                  <BadgeCheck aria-hidden="true" size={14} className="text-coral" />
+                  {item}
+                </span>
+              ))}
+            </div>
           </div>
 
           <div className="grid gap-3 sm:grid-cols-3">
@@ -176,7 +200,10 @@ export default function PricingPage() {
                 className="h-64 w-full object-cover"
               />
               <div className="p-6">
-                <p className="text-xs font-semibold uppercase text-sage">Report vault</p>
+                <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase text-sage">
+                  <LockKeyhole aria-hidden="true" size={14} />
+                  Report vault
+                </p>
                 <h2 className="font-serif-display mt-2 text-4xl text-plum">
                   The best parts are blurred until unlock.
                 </h2>
@@ -232,6 +259,8 @@ export default function PricingPage() {
         <div className="mt-8 grid gap-5 lg:grid-cols-3">
           {plans.map((plan) => {
             const isSelected = selectedPlanId === plan.id;
+            const PlanIcon = planIcons[plan.id];
+
             return (
               <Card
                 key={plan.id}
@@ -242,7 +271,10 @@ export default function PricingPage() {
                     Best value
                   </span>
                 ) : null}
-                <p className="text-xs font-semibold uppercase text-sage">{plan.eyebrow}</p>
+                <span className="flex h-11 w-11 items-center justify-center rounded bg-oat text-plum">
+                  <PlanIcon aria-hidden="true" size={22} />
+                </span>
+                <p className="mt-4 text-xs font-semibold uppercase text-sage">{plan.eyebrow}</p>
                 <h2 className="font-serif-display mt-3 text-4xl text-plum">{plan.name}</h2>
                 <p className="mt-2 text-sm text-muted">{plan.bestFor}</p>
                 <div className="mt-5 flex items-end gap-2">

@@ -35,7 +35,7 @@ export function Button({
   ...props
 }: ButtonProps) {
   const classes = [
-    "focus-ring inline-flex items-center justify-center rounded-soft border font-medium transition duration-200 hover:-translate-y-1 hover:shadow-card active:translate-y-0",
+    "focus-ring inline-flex items-center justify-center gap-2 rounded-soft border font-medium transition duration-200 hover:-translate-y-1 hover:shadow-card active:translate-y-0",
     "disabled:cursor-not-allowed disabled:opacity-55",
     variantClasses[variant],
     sizeClasses[size],

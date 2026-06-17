@@ -1,10 +1,18 @@
 "use client";
 
 import { FormEvent, ReactNode, useState } from "react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  CheckCircle2,
+  ImagePlus,
+  ListChecks,
+  LoaderCircle,
+  Sparkles
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { BudgetSelector } from "@/components/BudgetSelector";
 import { Button } from "@/components/Button";
-import { Card } from "@/components/Card";
 import { GoalSelector } from "@/components/GoalSelector";
 import { RoomTypeSelector } from "@/components/RoomTypeSelector";
 import { ThemeSelector } from "@/components/ThemeSelector";
@@ -133,6 +141,21 @@ export default function CreatePage() {
   const activeStep = steps[currentStep];
   const isLastStep = currentStep === steps.length - 1;
   const progress = Math.round(((currentStep + 1) / steps.length) * 100);
+  const completedSteps = steps.filter((step) => step.isComplete).length;
+  const roomLabel =
+    roomType === "other room" ? customRoomType.trim() || "Custom room" : roomType || "Not chosen";
+  const selectedSummary = [
+    ["Photos", uploadedImages.length ? `${uploadedImages.length} uploaded` : "Needed"],
+    ["Room", roomLabel],
+    ["Style", selectedTheme || "Not chosen"],
+    ["Budget", budget || "Not chosen"],
+    ["Goals", goals.length ? `${goals.length} selected` : "Needed"]
+  ];
+  const canMoveBack = currentStep > 0;
+  const canJumpToStep = (stepIndex: number) =>
+    stepIndex <= currentStep || steps.slice(0, stepIndex).every((step) => step.isComplete);
+  const nextLoadingIndex = loadingStages.findIndex((stage) => loadingProgress <= stage.progress);
+  const activeLoadingIndex = nextLoadingIndex === -1 ? loadingStages.length - 1 : nextLoadingIndex;
 
   function goNext() {
     setError("");
@@ -194,22 +217,22 @@ export default function CreatePage() {
 
   if (phase === "generating") {
     return (
-      <section className="aurora-stage min-h-[calc(100vh-64px)] py-8 md:py-12">
+      <section className="aurora-stage min-h-[calc(100vh-64px)] py-6 md:py-10">
         <div className="aurora-motion" aria-hidden="true">
           <span />
           <span />
           <span />
         </div>
         <div className="page-shell relative z-10">
-          <div className="grid min-h-[calc(100vh-170px)] gap-6 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
-            <Card className="premium-card glass-panel scan-shell overflow-hidden p-0">
-              <div className="relative min-h-[520px] overflow-hidden bg-plum">
+          <div className="grid min-h-[calc(100vh-150px)] gap-5 lg:grid-cols-[minmax(0,1.05fr)_420px] lg:items-stretch">
+            <div className="overflow-hidden rounded-soft border border-white/60 bg-plum shadow-soft">
+              <div className="relative min-h-[560px] overflow-hidden">
                 <img
                   src={uploadedImages[0]?.url || "/images/ai-before-bedroom-messy.png"}
                   alt="Room being analysed"
-                  className="absolute inset-0 h-full w-full object-cover opacity-76"
+                  className="absolute inset-0 h-full w-full object-cover opacity-80"
                 />
-                <div className="absolute inset-0 bg-[linear-gradient(140deg,rgba(47,18,54,0.82),rgba(47,18,54,0.26)_46%,rgba(255,112,72,0.12))]" />
+                <div className="absolute inset-0 bg-[linear-gradient(120deg,rgba(47,18,54,0.92),rgba(47,18,54,0.38)_44%,rgba(255,112,72,0.10))]" />
                 <div className="analysis-radar" aria-hidden="true">
                   <span />
                   <span />
@@ -219,44 +242,55 @@ export default function CreatePage() {
                   <span>layout</span>
                   <span>lighting</span>
                   <span>storage</span>
-                  <span>furniture</span>
                   <span>budget</span>
+                  <span>palette</span>
                 </div>
 
-                <div className="absolute left-6 top-6 z-10 max-w-sm">
-                  <p className="glass-pill inline-flex px-4 py-2 text-xs font-semibold uppercase text-plum">
-                    Live room read
+                <div className="absolute left-5 right-5 top-5 z-10 md:left-8 md:right-auto md:max-w-xl">
+                  <p className="glass-pill inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold uppercase text-plum">
+                    <LoaderCircle aria-hidden="true" size={14} className="animate-spin" />
+                    Analysis in progress
                   </p>
-                  <h1 className="font-serif-display mt-4 text-5xl leading-none tracking-normal text-white md:text-6xl">
-                    Building the practical version.
+                  <h1 className="font-serif-display mt-5 text-5xl leading-none tracking-normal text-white md:text-7xl">
+                    Turning your room into a plan.
                   </h1>
+                  <p className="mt-4 max-w-lg text-sm leading-6 text-white/78">
+                    We are ranking the fixes by impact, budget, and how realistic they are
+                    for the room you uploaded.
+                  </p>
                 </div>
 
-                <div className="absolute inset-x-6 bottom-6 z-10 grid gap-3 sm:grid-cols-3">
-                  {["Lighting map", "Storage zones", "Layout flow"].map((item) => (
+                <div className="absolute inset-x-5 bottom-5 z-10 grid gap-3 md:inset-x-8 md:grid-cols-3">
+                  {[
+                    ["Room type", roomLabel],
+                    ["Style", selectedTheme || "Pending"],
+                    ["Budget", budget || "Pending"]
+                  ].map(([label, value]) => (
                     <div
-                      key={item}
-                      className="analysis-chip rounded-soft border border-white/28 bg-white/22 p-4 text-sm font-semibold text-white shadow-card backdrop-blur-xl"
+                      key={label}
+                      className="rounded-soft border border-white/26 bg-white/18 p-4 text-white shadow-card backdrop-blur-2xl"
                     >
-                      <p>{item}</p>
-                      <p className="mt-2 text-xs font-medium text-white/72">In progress</p>
+                      <p className="text-[11px] font-semibold uppercase text-white/62">{label}</p>
+                      <p className="mt-1 text-sm font-semibold capitalize">{value}</p>
                     </div>
                   ))}
                 </div>
               </div>
-            </Card>
+            </div>
 
-            <div className="glass-panel rounded-soft p-6 md:p-8">
-              <p className="text-sm font-semibold uppercase text-sage">Finalising your plan</p>
-              <h2 className="font-serif-display mt-3 text-5xl leading-none tracking-normal text-plum md:text-7xl">
-                Making the ideas usable.
-              </h2>
-              <p className="mt-4 max-w-2xl text-base leading-7 text-muted">
-                We are turning the photo, room type, style direction, budget, and goals into
-                a locked preview with practical next steps.
-              </p>
+            <div className="glass-panel flex flex-col rounded-soft p-5 md:p-6">
+              <div>
+                <p className="text-sm font-semibold uppercase text-sage">Finalising ideas</p>
+                <h2 className="font-serif-display mt-3 text-4xl leading-none tracking-normal text-plum md:text-5xl">
+                  Making the report useful.
+                </h2>
+                <p className="mt-4 text-sm leading-6 text-muted">
+                  The output is being shaped into a first-move list, layout notes, lighting
+                  plan, palette, products, and a 3D preview area.
+                </p>
+              </div>
 
-              <div className="mt-8 rounded-soft border border-white/65 bg-white/58 p-4 shadow-card backdrop-blur-xl">
+              <div className="mt-6 rounded-soft border border-white/65 bg-white/62 p-4 shadow-card backdrop-blur-xl">
                 <div className="flex items-center justify-between gap-4 text-sm font-semibold text-plum">
                   <span>{loadingLabel}</span>
                   <span>{loadingProgress}%</span>
@@ -269,30 +303,51 @@ export default function CreatePage() {
                 </div>
               </div>
 
-              <div className="mt-6 grid gap-3 sm:grid-cols-3">
+              <div className="mt-5 grid gap-3">
                 {[
-                  ["Layout", "What moves first"],
-                  ["Lighting", "What changes mood"],
-                  ["Shopping", "What is worth buying"]
-                ].map(([title, copy]) => (
+                  ["First moves", "The few changes to do before spending money"],
+                  ["Layout logic", "Where furniture, storage, and walking paths should go"],
+                  ["Shopping filter", "What is worth buying for this budget"]
+                ].map(([title, copy], index) => (
                   <div key={title} className="rounded-soft border border-white/62 bg-white/58 p-4 backdrop-blur-xl">
-                    <p className="text-sm font-semibold text-plum">{title}</p>
-                    <p className="mt-2 text-xs leading-5 text-muted">{copy}</p>
+                    <div className="flex items-start gap-3">
+                      <span className="grid h-8 w-8 shrink-0 place-items-center rounded bg-oat text-xs font-semibold text-plum">
+                        0{index + 1}
+                      </span>
+                      <div>
+                        <p className="text-sm font-semibold text-plum">{title}</p>
+                        <p className="mt-1 text-xs leading-5 text-muted">{copy}</p>
+                      </div>
+                    </div>
                   </div>
                 ))}
               </div>
 
-              <div className="mt-6 grid gap-2">
+              <div className="mt-5 grid gap-2">
                 {loadingStages.map((stage) => {
                   const isDone = loadingProgress >= stage.progress;
+                  const isActive = loadingStages[activeLoadingIndex]?.label === stage.label;
 
                   return (
-                    <div key={stage.label} className="flex items-center gap-3 rounded-soft border border-white/55 bg-white/50 px-4 py-3 backdrop-blur-xl">
+                    <div
+                      key={stage.label}
+                      className={`flex items-center gap-3 rounded-soft border px-4 py-3 backdrop-blur-xl ${
+                        isActive
+                          ? "border-coral/45 bg-white/82 shadow-card"
+                          : "border-white/55 bg-white/48"
+                      }`}
+                    >
                       <span
-                        className={`h-2.5 w-2.5 shrink-0 rounded-full ${
-                          isDone ? "bg-coral" : "bg-line"
+                        className={`grid h-6 w-6 shrink-0 place-items-center rounded-full ${
+                          isDone ? "bg-coral text-white" : "bg-oat text-muted"
                         }`}
-                      />
+                      >
+                        {isDone ? (
+                          <CheckCircle2 aria-hidden="true" size={14} strokeWidth={2.5} />
+                        ) : (
+                          <span className="h-2 w-2 rounded-full bg-current" />
+                        )}
+                      </span>
                       <span className={`text-xs font-semibold ${isDone ? "text-plum" : "text-muted"}`}>
                         {stage.label}
                       </span>
@@ -309,33 +364,126 @@ export default function CreatePage() {
   }
 
   return (
-    <section className="aurora-stage min-h-[calc(100vh-64px)] py-8 md:py-12">
+    <section className="aurora-stage min-h-[calc(100vh-64px)] py-6 md:py-10">
+      <div className="aurora-motion" aria-hidden="true">
+        <span />
+        <span />
+        <span />
+      </div>
       <div className="page-shell relative z-10">
-        <div className="grid gap-8 lg:grid-cols-[0.8fr_1.1fr] lg:items-center">
+        <div className="mb-6 flex flex-col justify-between gap-4 md:flex-row md:items-end">
           <div>
-            <p className="inline-flex rounded-full bg-white/70 px-4 py-2 text-xs font-semibold uppercase text-plum shadow-card">
-              Room makeover trial
+            <p className="glass-pill inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold uppercase text-plum">
+              <ImagePlus aria-hidden="true" size={14} />
+              Room makeover studio
             </p>
-            <h1 className="font-serif-display mt-5 max-w-xl text-5xl tracking-normal text-plum md:text-7xl">
-              Show us the room. Tell us the dream.
+            <h1 className="font-serif-display mt-4 max-w-4xl text-5xl leading-none tracking-normal text-plum md:text-7xl">
+              Build a practical room brief.
             </h1>
-            <p className="mt-5 max-w-xl text-base leading-8 text-muted">
-              One question at a time, then a cinematic analysis screen. Your full
-              results unlock after you choose a plan.
+            <p className="mt-4 max-w-2xl text-sm leading-6 text-muted md:text-base md:leading-7">
+              Upload the real room, choose the context, then we turn it into a report,
+              pricing reveal, and navigable 3D preview area.
             </p>
-            <div className="mt-8 grid max-w-xl gap-3 sm:grid-cols-3">
-              {["Upload", "Analyze", "Unlock"].map((item, index) => (
-                <div key={item} className="glass-panel rounded-soft p-4">
-                  <p className="text-xs font-semibold uppercase text-sage">0{index + 1}</p>
-                  <p className="mt-1 font-semibold text-plum">{item}</p>
-                </div>
-              ))}
-            </div>
           </div>
 
+          <div className="glass-panel rounded-soft px-4 py-3">
+            <p className="text-xs font-semibold uppercase text-sage">Brief progress</p>
+            <p className="mt-1 font-serif-display text-3xl text-plum">
+              {completedSteps}/{steps.length}
+            </p>
+          </div>
+        </div>
+
+        <div className="grid gap-5 xl:grid-cols-[320px_minmax(0,1fr)]">
+          <aside className="space-y-4 xl:sticky xl:top-24 xl:self-start">
+            <div className="glass-panel rounded-soft p-4">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-xs font-semibold uppercase text-sage">Step navigator</p>
+                  <p className="mt-1 text-sm font-semibold text-plum">{progress}% complete</p>
+                </div>
+                <ListChecks aria-hidden="true" className="text-coral" size={24} />
+              </div>
+              <div className="mt-4 h-2 overflow-hidden rounded-full bg-oat">
+                <div
+                  className="h-full rounded-full bg-coral transition-all duration-500"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+              <div className="mt-4 grid gap-2">
+                {steps.map((step, index) => {
+                  const isActive = index === currentStep;
+                  const canOpen = canJumpToStep(index);
+
+                  return (
+                    <button
+                      key={step.id}
+                      type="button"
+                      disabled={!canOpen}
+                      onClick={() => setCurrentStep(index)}
+                      className={`focus-ring flex items-center gap-3 rounded-soft border px-3 py-3 text-left transition ${
+                        isActive
+                          ? "border-coral bg-white text-plum shadow-card"
+                          : "border-white/55 bg-white/48 text-muted hover:border-coral hover:text-plum"
+                      } disabled:cursor-not-allowed disabled:opacity-45`}
+                    >
+                      <span
+                        className={`grid h-7 w-7 shrink-0 place-items-center rounded-full text-xs font-semibold ${
+                          step.isComplete ? "bg-coral text-white" : "bg-oat text-plum"
+                        }`}
+                      >
+                        {step.isComplete ? (
+                          <CheckCircle2 aria-hidden="true" size={15} strokeWidth={2.5} />
+                        ) : (
+                          index + 1
+                        )}
+                      </span>
+                      <span>
+                        <span className="block text-xs font-semibold uppercase">{step.eyebrow}</span>
+                        <span className="block text-sm font-semibold">{step.title.replace(".", "")}</span>
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="glass-panel rounded-soft p-4">
+              <p className="text-xs font-semibold uppercase text-sage">Current brief</p>
+              <div className="mt-3 divide-y divide-white/60 text-sm">
+                {selectedSummary.map(([label, value]) => (
+                  <div key={label} className="flex items-center justify-between gap-4 py-2.5">
+                    <span className="font-semibold text-plum">{label}</span>
+                    <span className="max-w-[150px] truncate text-right capitalize text-muted">{value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="overflow-hidden rounded-soft border border-white/60 bg-white/62 shadow-card backdrop-blur-xl">
+              {uploadedImages[0] ? (
+                <img
+                  src={uploadedImages[0].url}
+                  alt="Uploaded room preview"
+                  className="h-44 w-full object-cover"
+                />
+              ) : (
+                <div className="grid h-44 place-items-center bg-oat text-center text-sm text-muted">
+                  Add a room photo to anchor the report.
+                </div>
+              )}
+              <div className="p-4">
+                <p className="text-xs font-semibold uppercase text-sage">Report output</p>
+                <p className="mt-2 text-sm leading-6 text-muted">
+                  Teaser, pricing reveal, full report, and 3D preview all use this brief.
+                </p>
+              </div>
+            </div>
+          </aside>
+
           <form onSubmit={handleSubmit}>
-            <Card className="premium-card glass-panel overflow-hidden p-0">
-              <div className="border-b border-white/58 bg-white/48 px-5 py-4 backdrop-blur-xl">
+            <div className="glass-panel overflow-hidden rounded-soft">
+              <div className="border-b border-white/58 bg-white/48 px-5 py-4 backdrop-blur-xl md:px-6">
                 <div className="flex items-center justify-between gap-4">
                   <div>
                     <p className="text-xs font-semibold uppercase text-sage">
@@ -343,7 +491,7 @@ export default function CreatePage() {
                     </p>
                     <p className="text-sm text-muted">Question {currentStep + 1} of {steps.length}</p>
                   </div>
-                  <div className="h-2 w-32 overflow-hidden rounded-full bg-oat">
+                  <div className="hidden h-2 w-44 overflow-hidden rounded-full bg-oat sm:block">
                     <div
                       className="h-full rounded-full bg-coral transition-all duration-500"
                       style={{ width: `${progress}%` }}
@@ -367,22 +515,25 @@ export default function CreatePage() {
                     type="button"
                     variant="ghost"
                     onClick={() => setCurrentStep((step) => Math.max(step - 1, 0))}
-                    disabled={currentStep === 0}
+                    disabled={!canMoveBack}
                   >
+                    <ArrowLeft aria-hidden="true" size={16} />
                     Back
                   </Button>
                   {isLastStep ? (
                     <Button type="submit" className="orange-button">
+                      <Sparkles aria-hidden="true" size={16} />
                       Analyze and see plans
                     </Button>
                   ) : (
                     <Button type="button" className="orange-button" onClick={goNext}>
                       Next question
+                      <ArrowRight aria-hidden="true" size={16} />
                     </Button>
                   )}
                 </div>
               </div>
-            </Card>
+            </div>
           </form>
         </div>
       </div>

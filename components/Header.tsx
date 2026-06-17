@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Sparkles, UserRound } from "lucide-react";
 import { Button } from "@/components/Button";
 
 const navItems = [
@@ -17,14 +18,7 @@ export function Header() {
             RoomRevamp
           </span>
           <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#fff0e9] text-coral">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <path
-                d="M12 2.5 14.1 8l5.7-2.1-2.1 5.7 5.5 2.4-5.8 2-2 5.8-3.4-5-5 3.4 1-6.1-6.1-1 5.4-3.1-3.1-5.4 6.1 1L12 2.5Z"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinejoin="round"
-              />
-            </svg>
+            <Sparkles aria-hidden="true" size={16} strokeWidth={2.4} />
           </span>
           <span className="hidden h-7 w-px bg-line md:block" />
           <span className="hidden text-sm text-plum/70 md:block">Better rooms, less guessing</span>
@@ -42,17 +36,10 @@ export function Header() {
         </nav>
         <div className="flex items-center gap-3">
           <Button href="/create" size="sm" className="orange-button">
-          Start makeover
+            Start makeover
           </Button>
           <div className="glass-pill hidden h-10 w-10 items-center justify-center text-plum md:flex">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <path
-                d="M20 21a8 8 0 0 0-16 0M12 13a5 5 0 1 0 0-10 5 5 0 0 0 0 10Z"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-              />
-            </svg>
+            <UserRound aria-hidden="true" size={19} strokeWidth={2} />
           </div>
         </div>
       </div>
